@@ -28,6 +28,8 @@ dependencies:
     enabled: false
   loki:
     olm:
+      # dagobah runs Loki 6.6, and OLM has no path back to stable-6.5.
+      channel: stable-6.6
       # The platform owns this Red Hat managed Namespace.
       createNamespace: false
 services:

@@ -15,7 +15,7 @@ praxisConfig:
     peerTrust:
       mode: spiffe
       spiffeIds:
-        - spiffe://grid.internal/site/ai-grid-2
+        - spiffe://grid.internal/site/site-e
     backends:
       - cluster: local-model
         endpoints:
@@ -56,4 +56,4 @@ networkPolicy:
         matchLabels:
           network.openshift.io/policy-group: ingress
     - ipBlock:
-        cidr: 10.0.0.0/16
+        cidr: 192.168.1.0/24

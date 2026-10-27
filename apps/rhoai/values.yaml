@@ -165,7 +165,7 @@ grid-enrollment:
   # ROSA cluster ("unsupported vendor OpenShiftDedicated"), so no cross-cluster
   # tunnel forms and clusterset.local does not resolve on a spoke. Passthrough is
   # the chart default, so the site still pins the grid CA end to end.
-  host: grid-enrollment.apps.ai-grid-1.qhdb.p1.openshiftapps.com
+  host: grid-enrollment.apps.dagobah.hexfusion.local
   route:
     enabled: true
   serving:

@@ -1,11 +1,13 @@
 # The serving config names this cluster's provider after a hash of the local
 # LLMInferenceService UID, and grid_site_route can only select a cluster it
-# declares, so the name is local to this file.
+# declares, so the name is local to this file. dagobah's model does not exist
+# until the first sync, so the name below is a placeholder: replace it with the
+# provider name the operator writes once facebook-opt-125m is Ready.
 praxis-gateway:
   praxisConfig:
     render:
       backends:
-        - cluster: grid-ai-grid-internal-models-faed73c1e8cd2d951f0c419304cf91ad05
+        - cluster: grid-ai-grid-internal-models-pending
           endpoints:
             - facebook-opt-125m-kserve-workload-svc.ai-grid-internal-models.svc.cluster.local.:8000
           transport:
@@ -15,11 +17,3 @@ praxis-gateway:
               key: service-ca.crt
           # praxis refuses a name that resolves to a private address.
           trustPrivate: true
-        # The peer's router. No SNI here, so the chart defaults it to
-        # ai-grid-2.grid.internal, which is also the peer's Route host.
-        - cluster: peer-ai-grid-2
-          site: ai-grid-2
-          endpoints:
-            - ai-grid-2.apps.ai-grid-2-pool-mk8j5.aws.rh-ods.com:443
-          transport:
-            mode: mutual_tls

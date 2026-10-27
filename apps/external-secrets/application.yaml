@@ -6,8 +6,8 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/kahowell/ai-grid-tenant.git
-    targetRevision: HEAD
+    repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+    targetRevision: dagobah
     path: apps/external-secrets/manifests
   destination:
     server: https://kubernetes.default.svc

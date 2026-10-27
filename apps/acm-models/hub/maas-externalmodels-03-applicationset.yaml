@@ -23,8 +23,8 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/kahowell/ai-grid-tenant.git
-        targetRevision: HEAD
+        repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+        targetRevision: dagobah
         path: apps/acm-models/externalmodels
       destination:
         server: '{{.server}}'

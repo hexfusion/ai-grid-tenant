@@ -22,8 +22,8 @@ spec:
     spec:
       project: default
       sources:
-        - repoURL: https://github.com/kahowell/ai-grid-tenant.git
-          targetRevision: HEAD
+        - repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+          targetRevision: dagobah
           ref: values
         # Pinned to a feature branch carrying operator.olm.createNamespace until
         # the change is available upstream. This lets ACM own protected
@@ -48,23 +48,23 @@ spec:
                 value: '{{ ne .name "local-cluster" | toString }}'
               - name: dependencies.loki.olm.createNamespace
                 value: '{{ ne .name "local-cluster" | toString }}'
-        - repoURL: https://github.com/kahowell/ai-grid-tenant.git
-          targetRevision: HEAD
+        - repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+          targetRevision: dagobah
           path: apps/rhoai/manifests
         # The enrollment service runs on the hub, so a managed cluster excludes these.
-        - repoURL: https://github.com/kahowell/ai-grid-tenant.git
-          targetRevision: HEAD
+        - repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+          targetRevision: dagobah
           path: apps/rhoai/local-cluster
           directory:
             exclude: '{{ if eq .name "local-cluster" }}{{ else }}*{{ end }}'
         # The hub collects through ai-grid-o11y; a managed cluster's collector needs its own copies.
-        - repoURL: https://github.com/kahowell/ai-grid-tenant.git
-          targetRevision: HEAD
+        - repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+          targetRevision: dagobah
           path: apps/ai-grid-o11y/spoke
           directory:
             exclude: '{{ if eq .name "local-cluster" }}*{{ end }}'
-        - repoURL: https://github.com/kahowell/ai-grid-tenant.git
-          targetRevision: HEAD
+        - repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+          targetRevision: dagobah
           path: apps/rhoai/grid-network
           helm:
             releaseName: grid-network
@@ -87,8 +87,8 @@ spec:
             parameters:
               - name: grid.siteName
                 value: '{{ .name }}'
-        - repoURL: https://github.com/kahowell/ai-grid-tenant.git
-          targetRevision: HEAD
+        - repoURL: https://github.com/hexfusion/ai-grid-tenant.git
+          targetRevision: dagobah
           path: apps/rhoai/catalog
           helm:
             releaseName: rhoai-nightly-catalog

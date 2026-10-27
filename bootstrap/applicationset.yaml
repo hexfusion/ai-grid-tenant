@@ -16,6 +16,9 @@ spec:
         files:
           - path: apps/*/application.yaml
           - path: cluster-config/application.yaml
+          # dagobah stores on LVMS and has no disks for ODF.
+          - path: apps/odf/application.yaml
+            exclude: true
   template:
     metadata:
       name: '{{.metadata.name}}'

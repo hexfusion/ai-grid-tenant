@@ -10,4 +10,7 @@ spec:
   sourceNamespace: openshift-marketplace
   name: advanced-cluster-management
   channel: release-2.15
+  # Adopts dagobah's installed CSV. OLM matches a new subscription to an existing
+  # operator only through its exact CSV name.
+  startingCSV: advanced-cluster-management.v2.15.8
   installPlanApproval: Automatic

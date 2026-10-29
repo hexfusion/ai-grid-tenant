@@ -20,6 +20,7 @@ spec:
           - path: apps/cert-manager/application.yaml
           - path: apps/gitops-config/application.yaml
           - path: apps/grid-bootstrap/application.yaml
+          - path: apps/rhoai-prerequisites/application.yaml
   template:
     metadata:
       name: '{{.metadata.name}}'

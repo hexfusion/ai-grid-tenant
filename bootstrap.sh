@@ -36,6 +36,4 @@ oc patch consoles.operator.openshift.io cluster --patch '{ "spec": { "plugins": 
 
 # Seed only the hub-side Quay credential. The rhoai-prerequisites ACM app
 # distributes the registry mirror and pull secret to every managed cluster.
-if [ -z "$profile" ]; then
-  bash apps/rhoai-prerequisites/create-hub-secret.sh
-fi
+bash apps/rhoai-prerequisites/create-hub-secret.sh

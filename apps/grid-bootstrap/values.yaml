@@ -2,8 +2,8 @@ mode: external
 fullnameOverride: grid-bootstrap
 # Grid v0.3.0-rc.2 enrollment from the RHDS build at bca253e, matching apps/rhoai/values.yaml.
 image:
-  repository: registry.redhat.io/rhoai/odh-praxis-ai-grid-enrollment-rhel9
-  digest: sha256:a31c0fb11b74bc2ef13530b7f24a87b54c4ff4c476cb5b2d2c837093eabd61da
+  repository: quay.io/sbatsche/grid-enrollment
+  digest: sha256:61a25e6260b0b26eaf8e78883337b3983ec5574aaeace424902a6c4a3cb29770
 gridIdentity:
   enabled: true
 grid:

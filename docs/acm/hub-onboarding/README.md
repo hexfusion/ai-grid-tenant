@@ -2,32 +2,6 @@
 
 How a cluster becomes a Grid site on v0.3.0-rc.3, under Local membership with ACM delivery. One site per cluster.
 
-## Flow
-
-```mermaid
-flowchart TD
-    BOOT["Hub bootstrap Job"] --> STATE["Hub ConfigMap grid-bootstrap-state<br/>gridId"]
-    ENROLL["Identity policy"] --> NET
-    STATE --> NET["GridNetwork per cluster<br/>gridId, Local, poll, SPIFFE"]
-    CRDS["CRDs and operator"] --> NET
-    ROUTES["Gateway and signals Routes"] --> SITE
-    NET --> SITE["Local GridSite<br/>gateway and signals endpoints"]
-    SITE --> OBS["Observer ManifestWork"]
-    OBS --> PEERS["Peers policy<br/>copies other members' GridSites"]
-    PEERS --> POLL["Operator polls peers over mTLS"]
-    MODEL["Model controller"] --> IP["InferenceProvider"]
-    IP --> CAND["Routing candidates"]
-    POLL --> CAND
-    CAND --> GW["grid-gateway"]
-```
-
-1. Bootstrap writes the grid ID once to grid-bootstrap-state on the hub.
-2. A policy delivers each cluster's site identity and CA. The site name is the managed cluster name.
-3. Once the CRDs are Established and the Secrets exist, a policy creates the GridNetwork: grid ID, Local, poll, SPIFFE.
-4. A policy writes the local GridSite with endpoints from the admitted Routes.
-5. The observer reads each GridSite back to the hub, and the peers policy copies it to the other members.
-6. The operator polls each declared peer. Local and remote providers become the gateway's candidates. Remote picks go to the site's gateway, local picks to the provider endpoint.
-
 ## Installing Argo CD
 
 Argo CD runs on the hub and installs everything else from the tenant repo, ACM included. Argo syncs from git, so run it from your own fork. Point the fork's Argo sources at itself, once, and push:
@@ -158,6 +132,32 @@ The operator restarts into the mode its GridNetwork declares.
 * Three possible creators of the local GridSite: operator, grid-operator chart, policy.
 * Endpoints are copied twice: Routes to local GridSite to peer copies.
 * Everything keys on the managed cluster name, so one site per cluster.
+
+## Flow
+
+```mermaid
+flowchart TD
+    BOOT["Hub bootstrap Job"] --> STATE["Hub ConfigMap grid-bootstrap-state<br/>gridId"]
+    ENROLL["Identity policy"] --> NET
+    STATE --> NET["GridNetwork per cluster<br/>gridId, Local, poll, SPIFFE"]
+    CRDS["CRDs and operator"] --> NET
+    ROUTES["Gateway and signals Routes"] --> SITE
+    NET --> SITE["Local GridSite<br/>gateway and signals endpoints"]
+    SITE --> OBS["Observer ManifestWork"]
+    OBS --> PEERS["Peers policy<br/>copies other members' GridSites"]
+    PEERS --> POLL["Operator polls peers over mTLS"]
+    MODEL["Model controller"] --> IP["InferenceProvider"]
+    IP --> CAND["Routing candidates"]
+    POLL --> CAND
+    CAND --> GW["grid-gateway"]
+```
+
+1. Bootstrap writes the grid ID once to grid-bootstrap-state on the hub.
+2. A policy delivers each cluster's site identity and CA. The site name is the managed cluster name.
+3. Once the CRDs are Established and the Secrets exist, a policy creates the GridNetwork: grid ID, Local, poll, SPIFFE.
+4. A policy writes the local GridSite with endpoints from the admitted Routes.
+5. The observer reads each GridSite back to the hub, and the peers policy copies it to the other members.
+6. The operator polls each declared peer. Local and remote providers become the gateway's candidates. Remote picks go to the site's gateway, local picks to the provider endpoint.
 
 ## References
 

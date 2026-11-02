@@ -36,14 +36,14 @@ spec:
       destination:
         server: '{{.spec.destination.server}}'
         namespace: '{{.spec.destination.namespace}}'
-  # ACM observability needs object storage and Submariner needs a site. A new
+  # ACM observability needs object storage, so it is left out. A new
   # grid generates its CA, and grid-bootstrap binds global in place of the rhoai
   # app's binding. acm-models brings only the sample model: argo-registration
   # registers clusters here, and the console catalog is the combined hub's.
   templatePatch: |
     {{- $spec := .spec }}
     {{- if eq .metadata.name "acm" }}
-    {{- $_ := set $spec.source "path" "apps/acm/manifests/core" }}
+    {{- $_ := set $spec.source "path" "apps/acm/manifests/dedicated-hub" }}
     {{- end }}
     {{- if eq .metadata.name "grid-bootstrap" }}
     {{- range $spec.sources }}{{ if hasKey . "helm" }}

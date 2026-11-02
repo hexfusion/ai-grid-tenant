@@ -44,6 +44,7 @@ spec:
   # grid generates its CA, and grid-bootstrap binds global in place of the rhoai
   # app's binding. acm-models brings only the sample model: argo-registration
   # registers clusters here, and the console catalog is the combined hub's.
+  # Limitador runs on the sites, so limitador-redis leaves out its storage config.
   templatePatch: |
     {{- $spec := .spec }}
     {{- if eq .metadata.name "acm" }}
@@ -56,6 +57,9 @@ spec:
     {{- end }}
     {{- if eq .metadata.name "acm-models" }}
     {{- $_ := set $spec.source "directory" (dict "include" "{facebook-opt-125m-03-applicationset.yaml,maas-03-applicationset.yaml}") }}
+    {{- end }}
+    {{- if eq .metadata.name "limitador-redis" }}
+    {{- $_ := set $spec.source "directory" (dict "exclude" "{04-limitador-redis-secret.yaml,20-limitador-storage.yaml}") }}
     {{- end }}
     {{- if eq .metadata.name "rhoai" }}
     {{- $_ := set $spec.source "directory" (dict "exclude" "00-managed-cluster-set-binding-grid.yaml") }}

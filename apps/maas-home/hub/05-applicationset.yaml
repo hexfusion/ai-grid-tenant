@@ -24,7 +24,7 @@ spec:
               selector:
                 matchLabels:
                   apps.open-cluster-management.io/acm-cluster: "true"
-                  ai-grid/maas-home: "true"
+                  ai-grid/external-services: "true"
           # ServiceExports need Submariner, which only replicas on other sites use.
           - list:
               elements:

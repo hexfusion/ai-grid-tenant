@@ -24,6 +24,9 @@ operator:
           # rhoai-prerequisites can go; until the RHOAI 3.6 payload carries it.
           - name: RELATED_IMAGE_ODH_MODEL_CONTROLLER_IMAGE
             value: quay.io/opendatahub/odh-model-controller@sha256:4fefe21382dbe0e0d55f735078b6ef751c06204463b974783f2d14d2636c753a
+          # Temporary change to test maas-api loki proxy
+          - name: RELATED_IMAGE_ODH_MAAS_API_IMAGE
+            value: quay.io/khowell_dev/maas-api:loki-access-proxy
 # Workaround for https://redhat.atlassian.net/browse/RHOAIENG-99507:
 # RHACM's multicluster-observability-addon also installs COO with its own
 # OperatorGroup (named after the namespace), which conflicts with the chart's
@@ -61,10 +64,8 @@ services:
 components:
   dashboard:
     dsc:
-      managementState: Managed
-      # TODO: Enable consumer portal once this is in: https://github.com/opendatahub-io/odh-gitops/pull/203
-      # maasConsumerPortal:
-      #  managementState: Managed
+      maasPortal:
+        managementState: Managed
   kserve:
     gateway:
       annotations:

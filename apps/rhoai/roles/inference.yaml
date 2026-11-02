@@ -10,6 +10,7 @@ components:
         managementState: Removed
   dashboard:
     dsc:
-      managementState: Removed
+      maasPortal:
+        managementState: Removed
 praxis-gateway:
   enabled: false

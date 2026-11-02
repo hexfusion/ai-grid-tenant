@@ -1,10 +1,12 @@
 # MaaS home
 
 A dedicated hub runs no MaaS state. One site holds it instead: the cluster
-labelled `ai-grid/maas-home=true`.
+labelled `ai-grid/external-services=true`. These services are demo stand-ins for
+ones the user owns in production. See
+[external services](../../docs/maas-home/external-services/README.md).
 
 ```sh
-oc label managedcluster site-a ai-grid/maas-home=true
+oc label managedcluster site-a ai-grid/external-services=true
 ```
 
 The `maas-home` ApplicationSet installs these on it, reusing each app's
@@ -25,6 +27,14 @@ console-URL cluster claim.
 The label selects the home through Argo CD's cluster Secret, which ACM never
 removes a label from, and the ApplicationSet preserves what it installed, so
 removing the label deletes nothing. Moving the home means moving its database.
+
+To move from `ai-grid/maas-home`, add the new label to the home before this
+change syncs, and remove the old one after it:
+
+```sh
+oc label managedcluster site-a ai-grid/external-services=true
+oc label managedcluster site-a ai-grid/maas-home-
+```
 
 Label one cluster, normally also an AI Grid site with role `ingress` or
 `combined`. Other ingress sites don't get a read replica or database

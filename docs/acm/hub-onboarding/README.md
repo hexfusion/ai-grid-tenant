@@ -107,7 +107,7 @@ Its root ApplicationSet, [bootstrap/dedicated-hub/applicationset.yaml](../../../
 
 acm-models brings only the sample model and its MaaS objects, to AI Grid sites by role. Its GitOpsCluster would duplicate argo-registration, and the console catalog belongs to a combined hub.
 
-MaaS keeps its shared state on a site, not the hub: label one cluster ai-grid/maas-home=true, and [apps/maas-home](../../../apps/maas-home) installs the maas-db primary, Keycloak and Limitador's Redis there. The default ApplicationSet skips maas-home, because a combined hub runs them itself.
+MaaS keeps its shared state on a site, not the hub: label one cluster ai-grid/external-services=true, and [apps/maas-home](../../../apps/maas-home) installs the maas-db primary, Keycloak and Limitador's Redis there. The default ApplicationSet skips maas-home, because a combined hub runs them itself.
 
 The profile sets two grid-bootstrap values for a new grid on its own hub: external.certManager.ca.mode Generate, and managedClusters.createClusterSetBinding true, since no RHOAI app binds ClusterSet global into redhat-ai-grid there. Keep Generate for the life of the hub: its CA is a cert-manager Certificate.
 

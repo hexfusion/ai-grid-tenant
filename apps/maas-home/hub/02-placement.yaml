@@ -14,7 +14,7 @@ spec:
     - requiredClusterSelector:
         labelSelector:
           matchLabels:
-            ai-grid/maas-home: "true"
+            ai-grid/external-services: "true"
   tolerations:
     - key: cluster.open-cluster-management.io/unreachable
       operator: Exists

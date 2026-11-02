@@ -36,6 +36,8 @@ rules:
       - clusterserviceversions
     verbs:
       - get
+      - list
+      - watch
       - delete
   - apiGroups:
       - apps

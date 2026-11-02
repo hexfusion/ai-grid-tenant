@@ -37,6 +37,9 @@ spec:
         volumeMounts:
           - name: kv-cache
             mountPath: /kv-cache
+          - name: kv-cache
+            mountPath: /kv-cache/kv/model-cache/models
+            subPath: models
       - name: main
         env:
           - name: VLLM_CPU_KVCACHE_SPACE

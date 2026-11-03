@@ -37,16 +37,17 @@ as an override when present.
 
 ## What the site must provide
 
-- For an ingress or combined site whose MaaS home serves Keycloak behind a
+- For an ingress or combined site whose external-services cluster serves Keycloak behind a
   privately signed ingress certificate: the cluster trust must include the
-  home's ingress CA before the role is set ("Trusting the MaaS home's ingress
+  external-services cluster's ingress CA before the role is set ("Trusting the external-services cluster's ingress
   CA" below). With a publicly trusted certificate nothing is needed.
 
 - A default StorageClass. RHOAI monitoring claims 20Gi for metrics and 10Gi for
   traces on every site. An ingress or combined site claims 20Gi for its MaaS
   database replica. The sample models pull weights at start and claim nothing.
 - Submariner gateway nodes. Every managed cluster gets the add-on with two
-  gateways and Globalnet. Over it the site reaches the hub's enrollment service
+  gateways and Globalnet. Label two workers `submariner.io/gateway=true` on each
+  cluster, the hub included, because the add-on has no cloud credentials to do it. Over it the site reaches the hub's enrollment service
   and the MaaS database primary.
 - A default router the other sites can reach. Peers dial the provider gateway
   through it on 443 with TLS passthrough.
@@ -62,26 +63,26 @@ Still per site, on the hub:
   gateway address yet.
 - The provider gateway NetworkPolicy CIDR, for a site outside the lab VPC.
 
-## Trusting the MaaS home's ingress CA
+## Trusting the external-services cluster's ingress CA
 
-Authorino on a MaaS site performs OpenID discovery against the MaaS home's
+Authorino on a MaaS site performs OpenID discovery against the external-services cluster's
 Keycloak Route and validates API keys against maas-api over the OpenShift
 service CA. The trust patch in `apps/rhoai/maas-sites` mounts two ConfigMaps
 for that, `odh-trusted-ca-bundle` and `openshift-service-ca.crt`, which must
 exist in the Authorino namespace of every ingress or combined site.
 
-If the home's Keycloak Route presents a certificate that chains to a public
+If the external-services cluster's Keycloak Route presents a certificate that chains to a public
 root, nothing else is needed. Otherwise the CA that issued that certificate
 must be in the site's cluster trust, which RHOAI copies into
-`odh-trusted-ca-bundle`. `trust-maas-home-ca.sh` in this directory does that,
+`odh-trusted-ca-bundle`. `trust-external-services-ca.sh` in this directory does that,
 with `KUBECONFIG` pointing at the site:
 
 ```
-HOME_KUBECONFIG=<home kubeconfig> KEYCLOAK_HOST=<home Keycloak Route host> REALM=<MaaS realm> \
-  docs/acm/cluster-onboarding/trust-maas-home-ca.sh
+HOME_KUBECONFIG=<external-services cluster kubeconfig> KEYCLOAK_HOST=<Keycloak Route host> REALM=<MaaS realm> \
+  docs/acm/cluster-onboarding/trust-external-services-ca.sh
 ```
 
-A home that replaced its default ingress certificate passes
+An external-services cluster that replaced its default ingress certificate passes
 `HOME_CA_FILE=<PEM bundle of the replacement's issuer>` instead of
 `HOME_KUBECONFIG`. The script stops at the first failure and writes nothing
 before every read has succeeded: it checks the two ConfigMaps, obtains and
@@ -93,9 +94,9 @@ fingerprints the merged bundle, writes `custom-ca` and points `proxy/cluster`
 at it, waits (bounded, default 15 minutes, every request and sleep capped to
 the remaining budget) until every certificate of the merged bundle appears by
 SHA-256 fingerprint in the mounted `odh-trusted-ca-bundle`, and finally
-verifies a TLS connection to the home's OpenID discovery document with
+verifies a TLS connection to the external-services cluster's OpenID discovery document with
 exactly that bundle. Set the role only after it reports success.
-`tests/trust-maas-home-ca-test.sh` exercises it against stub `oc` and `curl`
+`tests/trust-external-services-ca-test.sh` exercises it against stub `oc` and `curl`
 binaries with real certificates.
 
 A site that already mounts volumes into Authorino lists them in

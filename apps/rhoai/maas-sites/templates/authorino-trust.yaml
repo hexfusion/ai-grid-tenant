@@ -1,5 +1,5 @@
 {{- if .Values.enabled }}
-# Authorino's image lacks two trust anchors: the MaaS home's ingress CA (Keycloak discovery,
+# Authorino's image lacks two trust anchors: the external-services cluster's ingress CA (Keycloak discovery,
 # else 401) and the service CA (the MaaS API's internal endpoint, else 403). The CR has no env
 # field, so both ConfigMaps are mounted over the image's CA directory. Server-side-apply partial:
 # the RHCL operator owns the CR, this chart owns spec.volumes; existing mounts go in extraVolumeItems.

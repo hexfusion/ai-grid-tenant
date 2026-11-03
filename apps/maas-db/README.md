@@ -27,12 +27,10 @@ automated deletion.
   same read endpoint; `maas-read-r` is the name a remote site's one-instance
   replica cluster can actually serve (its only instance carries `role=primary`,
   so CloudNativePG's `-ro` Service there has no endpoint while `-r` does).
-  `maas-db-config` currently names the first; readers move to the second once
-  the alias exists everywhere:
+  `maas-db-config` names the second:
 
 ```text
-maas-read-ro.maas-db.svc.cluster.local:5432   # configured today
-maas-read-r.maas-db.svc.cluster.local:5432    # the target, once the alias is deployed
+maas-read-r.maas-db.svc.cluster.local:5432
 ```
 
 - `maas-api` reads `maas-db-config` from its own namespace. The Secret has

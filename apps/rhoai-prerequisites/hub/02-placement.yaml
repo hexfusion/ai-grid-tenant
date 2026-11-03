@@ -27,7 +27,7 @@ spec:
               operator: NotIn
               values:
                 - local-cluster
-            # The MaaS home runs Redis itself (apps/maas-home).
+            # The external-services cluster runs Redis itself (apps/external-services).
             - key: ai-grid/external-services
               operator: NotIn
               values:

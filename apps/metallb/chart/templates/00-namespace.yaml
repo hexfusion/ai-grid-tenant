@@ -1,0 +1,23 @@
+{{- if .Values.operator.install }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.operator.namespace }}
+  annotations:
+    # Never pruned: switching operator.install or instance.create off hands the object over, it does not remove it.
+    argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: metallb-operator
+  namespace: {{ .Values.operator.namespace }}
+  annotations:
+    # Never pruned: switching operator.install or instance.create off hands the object over, it does not remove it.
+    argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
+# The operator supports only AllNamespaces: no targetNamespaces.
+spec:
+  upgradeStrategy: Default
+{{- end }}

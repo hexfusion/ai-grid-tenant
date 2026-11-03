@@ -4,11 +4,11 @@ A cluster is an AI Grid site when its ManagedCluster carries
 `ai-grid/enabled=true` and an `ai-grid/role` of `ingress`, `inference` or
 `combined`. Set both: without a role, nothing is installed.
 
-| Role | Runs |
-|---|---|
-| `ingress` | OpenShift AI with MaaS and the portal, the grid consumer gateway, the tenant Policy, a `maas-db` read replica, the models' MaaS side |
-| `inference` | OpenShift AI without MaaS (`apps/rhoai/roles/inference.yaml`), the grid operator and provider gateway, the models |
-| `combined` | Both. |
+| Role | Runs | Standard dashboard | MaaS portal |
+|---|---|---|---|
+| `ingress` | OpenShift AI with MaaS, the grid consumer gateway, the tenant Policy, a `maas-db` read replica, the models' MaaS side | Managed | Managed |
+| `inference` | OpenShift AI without MaaS (`apps/rhoai/roles/inference.yaml`), the grid operator and provider gateway, the models | Removed | Removed |
+| `combined` | Both. | Managed | Managed |
 
 With `ai-grid/enabled=true` and no role, or any other value, the cluster matches
 none of these Placements, so none of the AI Grid platform is installed: no
@@ -29,34 +29,30 @@ member until `ai-grid/enabled` goes too.
 
 ## The hub
 
-The hub runs ACM and Argo CD. On a combined hub, the grid enrollment service runs
-in the hub's own OpenShift AI release (`grid-enrollment.enabled` on
-`local-cluster`), so the hub must be a site too, normally `combined`. Don't remove a combined hub from the grid or give it another role:
-its release, enrollment included, would stop being managed. A dedicated hub
+The hub runs ACM and Argo CD, and enrolls every site through grid-bootstrap
+(apps/grid-bootstrap): the label makes a cluster a member, and ACM policies
+deliver its identity, CA and GridNetwork. No enrollment service runs. A dedicated hub
 (`BOOTSTRAP_PROFILE=dedicated-hub`) isn't labelled, so it generates `rhoai`
 Applications for its sites only, none for itself.
 
 The `maas-db` primary on the hub doesn't depend on the hub's labels: it's
-generated for `local-cluster` whatever they are, and every object in
-`apps/maas-db/local-cluster` (the CloudNativePG operator and the `Cluster`)
+generated for the hub whatever they are, and every object in
+`apps/maas-db/primary` (the CloudNativePG operator and the `Cluster`)
 carries `Delete=false`, so a Remove or a role change on the hub never deletes
 tenants' keys or subscriptions.
 
 ## What a new site still needs
 
 The labels are enough for the site itself. The grid operator derives the
-gateways' routing from the models the site publishes, so no file per site. Two
-things stay on the hub: a declared peer file for the site, until members report
-their gateway address, and the provider gateway NetworkPolicy CIDR for a site
-outside the lab VPC. See
+gateways' routing from the models the site publishes, and policies deliver
+peers, so no file per site. See
 [cluster onboarding](../../docs/acm/cluster-onboarding/README.md).
 
 ## What a Remove does
 
 Removing `ai-grid/enabled`, or the role, takes the cluster out of these Placements, so its
-Applications go at the next poll: about a minute for `rhoai`,
-`grid-provider-gateway` and `maas-db` (`requeueAfterSeconds: 60`), up to 3
-minutes for the catalog ApplicationSets (Argo CD's default). A cluster that
+Applications go at the next poll: about a minute for every ApplicationSet that
+reads them (`requeueAfterSeconds: 60`). A cluster that
 can't be reached holds its Applications' deletion longer. The ApplicationSets
 read the Placements, not the label on Argo CD's cluster Secret, which ACM
 never removes.
@@ -74,9 +70,6 @@ What goes and what stays:
   (`maas-db-config`, `maas-db-app`, `maas-db-replication`) and the tenant
   objects. Copies may exist, so rotate the shared credentials after removing a
   site.
-- The hub still declares it as a peer in
-  `apps/rhoai/local-cluster/40-declared-peer-<cluster>.yaml` until that file
-  goes.
 
 A role change reaches the Placements at once, and the `rhoai` template a few
 seconds later (through Argo CD's cluster Secret), so the Application can render

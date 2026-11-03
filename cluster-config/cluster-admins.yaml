@@ -1,0 +1,13 @@
+# This deployment's cluster admins. Overrides cluster_admins in values.yaml.
+cluster_admins:
+  - khowell
+  - aballant
+  - lphiri
+  - pdipilat
+  - juntwang
+  - chambrid
+  - sbatsche
+  - rjjohnso
+  - cchase
+  - kverlaen
+  - ckyrillo

@@ -16,6 +16,7 @@ spec:
         labelSelector:
           matchLabels:
             cluster.open-cluster-management.io/placement: acm-models-smollm2-135m-instruct
+        requeueAfterSeconds: 60
   syncPolicy:
     applicationsSync: sync
     preserveResourcesOnDeletion: false

@@ -15,10 +15,6 @@ operator:
           # Grid v0.3.0-rc.3 operator from the release on ghcr, until RHDS ships rc.3.
           - name: RELATED_IMAGE_ODH_PRAXIS_AI_GRID_OPERATOR_IMAGE
             value: ghcr.io/praxis-proxy/grid-operator@sha256:f3810434f13577d9940e25196b2bf37ba81c26765c5781d4679515814d7bdd22
-          # ODH KServe build of opendatahub-io/kserve#2128 (EPP metrics over TLS) at
-          # 27a1755, until the RHOAI 3.6 payload carries it.
-          - name: RELATED_IMAGE_ODH_KSERVE_LLMISVC_CONTROLLER_IMAGE
-            value: quay.io/opendatahub/odh-kserve-llmisvc-controller@sha256:69d54ad4c94726d5a0eca8202ba5820b70ea0bfa55f7998b440966dbd566f0a6
           # ODH model controller at ee3dcb8 (odh-model-controller#999: the Role grants the
           # publisher path it dials), to prove the grid-model-client-models binding in
           # rhoai-prerequisites can go; until the RHOAI 3.6 payload carries it.
@@ -64,6 +60,9 @@ services:
 components:
   dashboard:
     dsc:
+      # Declare both children; these profiles otherwise leave standard Removed.
+      standard:
+        managementState: Managed
       maasPortal:
         managementState: Managed
   kserve:
@@ -170,42 +169,10 @@ global:
     - name: RELATED_IMAGE_ODH_PRAXIS_AI_GRID_POSTGRES_IMAGE
       value: registry.redhat.io/rhel9/postgresql-16@sha256:435ba5c1d3f686cf8a45ae525b4d169ced6b33753bcfab99a1498bd9e6e99817
 
-# Vendored by odh-gitops, so values rather than a second Application. Renders
-# into redhat-ai-grid, which is the platform install's grid namespace.
+# Enrollment comes from grid-bootstrap on the hub, through ACM. The vendored
+# chart enables its own enrollment service unless this says otherwise.
 grid-enrollment:
-  # enabled is set per cluster by the ApplicationSet: the hub runs enrollment,
-  # spokes must not hold the Grid CA signing key.
-  # No Route: members get their identity from ACM delivery, not from this service.
-  route:
-    enabled: false
-  serving:
-    extraDnsNames:
-      - grid-enrollment.redhat-ai-grid.svc.clusterset.local
-  enrollment:
-    # Named explicitly: the chart would derive redhat-ai-grid-invites, which
-    # matches ^redhat-.* and ROSA refuses to let Argo create it. Naming it means
-    # the chart does not create it either, so it comes from manifests/.
-    inviteSecrets:
-      namespace: grid-enrollment-invites
-    authz: kube
-    service:
-      type: ClusterIP
-  db:
-    type: builtin
-    builtin:
-      pvcAnnotations:
-        argocd.argoproj.io/sync-options: Prune=false,Delete=false
-  # No invites: the ca-bootstrap and invite-admission templates both emit the
-  # same ValidatingAdmissionPolicy once invites is set, and Argo refuses a
-  # duplicated resource. A spoke has no enrollment configuration to redeem an
-  # invite with anyway.
-  hubSite:
-    name: local-cluster
-    namespace: redhat-ai-grid
-    identitySecretName: grid-site-identity
-    caSecretName: grid-ca
-    swimKeySecretName: grid-swim-key
-    seedSecretName: grid-reserved-seeds
+  enabled: false
 
 # The enrollment policy delivers GridNetwork; the operator publishes its local
 # GridSite from its identity. flavor is explicit because the chart only infers

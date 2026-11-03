@@ -1,6 +1,6 @@
 # Allows the ACM observability metrics-collector agents (running in
 # open-cluster-management-agent-addon on managed clusters, including
-# local-cluster) to reach the RHOAI data-science-collector OpenTelemetry
+# the hub) to reach the RHOAI data-science-collector OpenTelemetry
 # collector's metrics port.
 #
 # The ScrapeConfig rhai-metrics (open-cluster-management-observability)

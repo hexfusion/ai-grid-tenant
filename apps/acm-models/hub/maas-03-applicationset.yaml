@@ -15,6 +15,7 @@ spec:
         labelSelector:
           matchLabels:
             cluster.open-cluster-management.io/placement: ai-grid-ingress
+        requeueAfterSeconds: 60
   syncPolicy:
     applicationsSync: sync
     preserveResourcesOnDeletion: false

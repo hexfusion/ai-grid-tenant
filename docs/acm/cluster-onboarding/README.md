@@ -27,6 +27,20 @@ discover it dynamically:
    oc label managedcluster <name> ai-grid/role=inference
    ```
 
+   Peers reach the provider gateway through the site's router, which the
+   gateway's NetworkPolicy admits whether the router runs on the cluster network
+   or on the host network (OVN-Kubernetes expands the ingress policy group to
+   the nodes' management addresses). Only a site whose gateway sees peers as node
+   machine addresses declares that network (IPv4 CIDR, `_` for `/`, prefix 1
+   to 32), before the role label on a new site and before upgrading an existing
+   one. To see what the gateway receives, dump the OVN conntrack entries for
+   its pod address on the node that runs it (`ovs-appctl dpctl/dump-conntrack`
+   in that node's ovnkube-node pod).
+
+   ```bash
+   oc label managedcluster <name> ai-grid/machine-network=192.0.2.0_24
+   ```
+
    Then add AI projects and models: see [AI project onboarding](../ai-project-onboarding/README.md).
 
 No `ManagedCluster`, join token, kubeconfig, API URL, or cluster name needs to
@@ -39,8 +53,19 @@ as an override when present.
 
 - For an ingress or combined site whose external-services cluster serves Keycloak behind a
   privately signed ingress certificate: the cluster trust must include the
-  external-services cluster's ingress CA before the role is set ("Trusting the external-services cluster's ingress
-  CA" below). With a publicly trusted certificate nothing is needed.
+  external-services cluster's ingress CA before tenants use MaaS ("Trusting the
+  external-services cluster's ingress CA" below): on a site that already runs
+  Authorino, before the role changes; on a fresh site, right after the role
+  label, since the ConfigMaps the trust step needs appear with the role's
+  operators. With a publicly trusted certificate nothing is needed.
+
+- If the platform ships and owns `openshift-operators-redhat`, the Loki operator's
+  namespace (managed OpenShift such as OSD or ROSA), label the ManagedCluster
+  `ai-grid/platform-namespaces=true` before the role is set, and label existing
+  managed-OpenShift clusters before upgrading to this revision; the rhoai chart
+  then leaves that namespace alone. A self-managed cluster, hub or spoke, keeps
+  the default and the chart creates it. `redhat-ods-operator` is owned by the
+  prerequisites policy on every site and is not affected by this label.
 
 - A default StorageClass. RHOAI monitoring claims 20Gi for metrics and 10Gi for
   traces on every site. An ingress or combined site claims 20Gi for its MaaS
@@ -51,6 +76,14 @@ as an override when present.
   and the MaaS database primary.
 - A default router the other sites can reach. Peers dial the provider gateway
   through it on 443 with TLS passthrough.
+- DNS that returns valid AAAA records for the router's wildcard names, or
+  NOERROR with an empty answer (NODATA) when the name has no IPv6 address, never
+  NXDOMAIN for AAAA while A exists. The grid operator is a static musl binary;
+  musl's resolver fails the whole lookup when either parallel query returns
+  NXDOMAIN, while glibc clients (curl in the same pod) still connect, so an
+  A-only DNS configuration that incorrectly answers AAAA with NXDOMAIN (A-only
+  itself is fine: answer NODATA) leaves every GridSite Connecting. Check with
+  `dig AAAA router-default.apps.<cluster>.<domain>`.
 - Capacity for the sample models: three replicas of 1 CPU and 10Gi memory. A
   GPU model needs GPU nodes and the NVIDIA operator, which this repository does
   not install.
@@ -95,7 +128,10 @@ at it, waits (bounded, default 15 minutes, every request and sleep capped to
 the remaining budget) until every certificate of the merged bundle appears by
 SHA-256 fingerprint in the mounted `odh-trusted-ca-bundle`, and finally
 verifies a TLS connection to the external-services cluster's OpenID discovery document with
-exactly that bundle. Set the role only after it reports success.
+exactly that bundle. On a site that already runs Authorino, run it before
+changing the role; on a fresh site the ConfigMaps appear with the role's
+operators, so run it right after the role label and before onboarding
+tenants.
 `tests/trust-external-services-ca-test.sh` exercises it against stub `oc` and `curl`
 binaries with real certificates.
 

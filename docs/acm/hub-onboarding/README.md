@@ -168,3 +168,10 @@ flowchart TD
 * Argo bootstrap: https://github.com/ai-grid-cloud/ai-grid-cluster-gitops/blob/main/bootstrap.sh
 * ACM manifests: https://github.com/ai-grid-cloud/ai-grid-cluster-gitops/tree/main/apps/acm/manifests
 * Hub values: https://github.com/ai-grid-cloud/ai-grid-cluster-gitops/blob/main/apps/grid-bootstrap/values.yaml
+
+## Upgrading
+
+- Before upgrading a hub that runs on managed OpenShift (OSD, ROSA) to a revision
+  with the `ai-grid/platform-namespaces` label, label `local-cluster` with
+  `ai-grid/platform-namespaces=true`: the rhoai chart otherwise starts creating
+  `openshift-operators-redhat`, which the platform already owns there.

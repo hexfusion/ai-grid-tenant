@@ -153,8 +153,9 @@ spec:
                               app.kubernetes.io/instance: redhat-ods-monitoring.data-science-collector
     # The grid gateway dials each local model on the serving gateway's publisher path
     # as grid-model-client. The serving gateway's AuthPolicy authorizes that path with a
-    # SubjectAccessReview for post on serving.opendatahub.io models, which the per-model
-    # Role the model controller writes (get on the LLMInferenceService) does not grant.
+    # SubjectAccessReview for post on serving.opendatahub.io models. The pinned model
+    # controller (ee3dcb8) also writes a per-model Role for that verb; this namespace-wide
+    # grant keeps the client authorized while a model's Role is created or recreated.
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
@@ -195,6 +196,64 @@ spec:
                     name: grid-model-client
                     namespace: redhat-ai-grid
 
+    # odh-model-controller grants the grid model client `post` on each published model's
+    # path; Kubernetes only lets it grant a verb it holds, and its bundled ClusterRole
+    # (RHOAI 3.6 nightly, ee3dcb8) lacks `post`. This ClusterRole, bound per opted-in
+    # namespace, supplies it. Remove both templates once the bundle grants the verb;
+    # pruneObjectBehavior DeleteAll then removes the objects.
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: odh-model-controller-grid-publisher
+        spec:
+          remediationAction: enforce
+          severity: medium
+          pruneObjectBehavior: DeleteAll
+          object-templates:
+            # mustonlyhave: this ClusterRole is tenant-owned, so Git is the whole truth of its rules.
+            - complianceType: mustonlyhave
+              metadataComplianceType: musthave
+              objectDefinition:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: ClusterRole
+                metadata:
+                  name: odh-model-controller-grid-publisher
+                rules:
+                  - apiGroups:
+                      - serving.opendatahub.io
+                    resources:
+                      - models
+                    verbs:
+                      - post
+    - objectDefinition:
+        apiVersion: policy.open-cluster-management.io/v1
+        kind: ConfigurationPolicy
+        metadata:
+          name: odh-model-controller-grid-publisher-namespaces
+        spec:
+          remediationAction: enforce
+          severity: medium
+          pruneObjectBehavior: DeleteAll
+          # Every AI project namespace, opted in with grid.opendatahub.io/allowed=true.
+          namespaceSelector:
+            matchLabels:
+              grid.opendatahub.io/allowed: "true"
+          object-templates:
+            - complianceType: musthave
+              objectDefinition:
+                apiVersion: rbac.authorization.k8s.io/v1
+                kind: RoleBinding
+                metadata:
+                  name: odh-model-controller-grid-publisher
+                roleRef:
+                  apiGroup: rbac.authorization.k8s.io
+                  kind: ClusterRole
+                  name: odh-model-controller-grid-publisher
+                subjects:
+                  - kind: ServiceAccount
+                    name: odh-model-controller
+                    namespace: redhat-ods-applications
     - objectDefinition:
         apiVersion: policy.open-cluster-management.io/v1
         kind: ConfigurationPolicy
@@ -276,8 +335,11 @@ spec:
             {{- if $sourceAuth -}}
             {{- $_ := set $preRelease "quay.io/rhoai" $sourceAuth -}}
             {{- end -}}
-            {{- $mergedAuths := mustMerge (index $globalConfig "auths") $preRelease -}}
-            {{- $mergedConfig := mustMerge $globalConfig (dict "auths" $mergedAuths) -}}
+            {{- /* Sprig merge gives the first argument precedence: the hub-held credentials must win for the registries they cover (quay.io/rhoai, registry.stage.redhat.io), otherwise a rotated or corrected credential never reaches the nodes. */ -}}
+            {{- $mergedAuths := mustMerge $preRelease (index $globalConfig "auths") -}}
+            {{- /* Replace the auths map wholesale. Merging the config here would again merge the nested auths entry by entry with the existing global values winning, so corrected credentials never land. */ -}}
+            {{- $_ := set $globalConfig "auths" $mergedAuths -}}
+            {{- $mergedConfig := $globalConfig -}}
             - complianceType: musthave
               objectDefinition:
                 apiVersion: v1

@@ -42,6 +42,34 @@ maas-read-r.maas-db.svc.cluster.local:5432
 - New managed clusters are selected automatically through the `global` cluster
   set. Argo CD creates a replica Application for each ACM-registered cluster.
 
+## Switching the read endpoint
+
+`maas-db-config` names `maas-read-r`. A deployment that still names
+`maas-read-ro` switches in two steps, because a maas-api that restarts after
+the Secret changes resolves the new name at once:
+
+1. Deploy the alias (`local-cluster/31-read-service-r.yaml`) and let it
+   reconcile on every site. Then run the gate against the hub and every ingress
+   or combined site; it checks that `maas-read-r` exists, has ready endpoints
+   (the hub's through its ExternalName target) and answers an authenticated
+   read from inside a database pod:
+
+   ```sh
+   apps/maas-db/check-read-alias.sh <hub kubeconfig> <site kubeconfig>...
+   ```
+
+2. Only when every site reports `ready`, deploy the policies that name
+   `maas-read-r` (the maas-db policy and the external-services policy).
+
+On a fresh install both arrive together: the credentials policy (wave 3) may
+write the Secret before the database Application (wave 5) has created the
+Service, and reads fail until it exists, exactly as they did with the old name.
+A site whose single replica instance is down has no read endpoint under either
+name. Observed on a remote ingress site with its replica hibernated: API-key
+reads through the MaaS entry kept answering and recovered without
+intervention once the replica returned; which backend served them while the
+replica was down could not be verified on that maas-api build.
+
 ## Rollout
 
 The app depends on the existing ACM GitOps integration that creates Argo CD

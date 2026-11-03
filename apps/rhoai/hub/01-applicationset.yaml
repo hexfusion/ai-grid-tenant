@@ -79,8 +79,10 @@ spec:
               # OSD ships these namespaces; a self-managed spoke has no creator.
               - name: operator.rhoai.olm.createNamespace
                 value: '{{ ne (index .metadata.labels "local-cluster") "true" | toString }}'
+              # openshift-operators-redhat is platform-owned on managed OpenShift: such a
+              # cluster carries ai-grid/platform-namespaces=true (set before upgrading).
               - name: dependencies.loki.olm.createNamespace
-                value: '{{ ne (index .metadata.labels "local-cluster") "true" | toString }}'
+                value: '{{ if eq (index .metadata.labels "ai-grid/platform-namespaces") "true" }}false{{ else }}true{{ end }}'
         # The enrollment service runs on the hub, so a managed cluster excludes these.
         - repoURL: https://github.com/hexfusion/ai-grid-tenant.git
           targetRevision: main

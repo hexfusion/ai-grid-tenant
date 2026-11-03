@@ -60,6 +60,24 @@ creates or updates, keeping existing values:
   signs in with a username and password today.
 - `ai-grid-backend-git`: the catalog token, mounted into the backend as a file.
 
+The backend reaches Keycloak at the URL the script stores in
+`ai-grid-backend-keycloak`: by default Keycloak's public HTTPS Route, which
+works as is when the cluster's ingress certificate chains to a CA the backend's
+image trusts. On a cluster whose ingress CA is private (most self-managed
+clusters), two things need the CA:
+
+- The script's own calls go through the Route: run it with `CURL_CA_BUNDLE`
+  pointing at a file holding the ingress CA.
+- The backend's calls go to the stored URL, and the backend's image trusts the
+  system roots only: the console chart at the pinned revision has no setting
+  that adds a CA to the backend. Either serve the ingress with a certificate
+  the backend trusts, or set `KEYCLOAK_BACKEND_URL` to Keycloak's in-cluster
+  Service, `http://keycloak.maas-db.svc:8080`, so that the backend's admin API
+  calls stay inside the cluster network and need no TLS trust. Keycloak's
+  issued URLs stay public either way because its hostname is fixed by
+  `KC_HOSTNAME`. Changing the URL means rerunning the script, which restarts
+  the console.
+
 Then it restarts the console. Sign in with an OpenShift login that may patch
 ManagedClusters.
 
